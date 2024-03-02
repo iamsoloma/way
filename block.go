@@ -2,6 +2,7 @@ package way
 
 import (
 	"crypto/sha256"
+	"strconv"
 )
 
 type Block struct {
@@ -10,14 +11,18 @@ type Block struct {
 	Hash []byte
 }
 
-func (b Block) InitBlock (data []byte) (int, error) {
+func (b Block) InitBlock (genesis []byte) (Block, error) {
 	hasher := sha256.New()
-	dataHash, err := hasher.Write(data)
+	genesisHash, err := hasher.Write(genesis)
 	if err != nil {
-		return 0, err
+		return Block{}, err
 	}
 
-	return dataHash, err
+	b.Hash = []byte(strconv.Itoa(genesisHash))
+	b.Data = genesis
+	b.PrevHash = []byte{}
+
+	return b, err
 }
 
 func (b Block) NewBlock (data []byte, prevBlock Block) (Block Block) {

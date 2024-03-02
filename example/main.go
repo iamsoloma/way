@@ -11,20 +11,23 @@ func main() {
 	data1 := "rehiopjbhres"
 	data2 := "kjvdslzj"
 
-	genesis, err := way.Block.InitBlock(way.Block{}, []byte(genData))
+	genesisBlock, err := way.Block.InitBlock(way.Block{}, []byte(genData))
 	if err != nil {
 		panic(err)
 	} else {
-		fmt.Println("Genesis: ", genesis, "\n--------------------------------")
+		out := fmt.Sprintf("PrevHash: %x\nData: %s\nHash: %x\n--------------------------------\n", 
+		genesisBlock.PrevHash, string(genesisBlock.Data), genesisBlock.Hash)
+		fmt.Println(out)
 	}
 
-	genesisBlock := way.Block{PrevHash: []byte("0"), Data: []byte(genData), Hash: []byte("genesis")}
 	
 	block := way.Block.NewBlock(way.Block{}, []byte(data1), genesisBlock)
-	fmt.Printf("PrevHash: %s\nData: %s\nHash %s\n--------------------------------\n", 
-	string(block.PrevHash), string(block.Data), string(block.Hash))
+	out := fmt.Sprintf("PrevHash: %x\nData: %s\nHash: %x\n--------------------------------\n", 
+	block.PrevHash, string(block.Data), block.Hash)
+	fmt.Println(out)
 
 	block2 := way.Block.NewBlock(way.Block{}, []byte(data2), block)
-	fmt.Printf("PrevHash: %s\nData: %s\nHash %s\n--------------------------------\n", 
-	string(block2.PrevHash), string(block2.Data), string(block2.Hash))
+	out = fmt.Sprintf("PrevHash: %x\nData: %s\nHash: %x\n--------------------------------\n", 
+	block2.PrevHash, string(block2.Data), block2.Hash)
+	fmt.Println(out)
 }
