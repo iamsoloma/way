@@ -1,7 +1,9 @@
 package main
 
 import (
+	"fmt"
 	"log"
+	"time"
 
 	"github.com/TinajXD/way"
 )
@@ -9,9 +11,25 @@ import (
 func main() {
 	filename := "./example/blockchain.bc"
 
+	ExpCfg := way.Explorer{Path: filename}
 
-	err := way.Explorer.CreateBlockChain(way.Explorer{Path: filename}, "My Way!")
+	err := way.Explorer.CreateBlockChain(ExpCfg, "My Way!", time.Now().UTC())
 	if err != nil {
 		log.Println(err)
 	}
+
+	genBlock, id, time_utc, err := way.Explorer.GetBlockByID(ExpCfg, 0)
+	if err != nil {
+		log.Println(err)
+	} else {
+		log.Printf("Genesis:\n ID: %d\n Time: %s\n PrevHash: %q\n Hash: %q\n Data: %q\n", id, time_utc.String(), genBlock.PrevHash, genBlock.Hash, genBlock.Data)
+	}
+
+	wowBlock := way.Block.NewBlock(way.Block{}, []byte("WOW! It`s work!"), genBlock)
+	log.Printf("WOW:\n PrevHash: %q\n Hash: %q\n Data: %q\n", wowBlock.PrevHash, wowBlock.Hash, wowBlock.Data)
+	id, err = way.Explorer.AddBlock(ExpCfg, wowBlock, time.Now().UTC())
+	if err != nil {
+		log.Println(err)
+	}
+	fmt.Printf(" ID: %d", id)
 }

@@ -20,7 +20,7 @@ func (b Block) InitBlock (genesis []byte) (Block, error) {
 
 	b.Hash = []byte(strconv.Itoa(genesisHash))
 	b.Data = genesis
-	b.PrevHash = []byte{}
+	b.PrevHash = []byte{'0'}
 
 	return b, err
 }
