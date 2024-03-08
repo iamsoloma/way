@@ -9,7 +9,4 @@ pkgs.mkShell {
       go version
       go mod download
     '';
-
-    config = "./config.yaml";
-  
 }

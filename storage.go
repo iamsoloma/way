@@ -1,65 +1,90 @@
 package way
 
 import (
-	"database/sql"
 	"errors"
+	"os"
 	"time"
 
-	"github.com/mattn/go-sqlite3"
+	//"github.com/TinajXD/way"
 )
 
 type Explorer struct {
-	path string
-	db   *sql.DB
+	Path string
 }
 
-func (e Explorer) OpenBlockChain(path string) (*Explorer, error) {
-	db, err := sql.Open("sqlite3", path)
-	if err != nil {
-		return nil, err
-	}
 
-	stmt, err := db.Prepare(`
-	CREATE TABLE IF NOT EXISTS blockchain(
-		id INTEGER PRIMARY KEY AUTOINCREMENT,
-		prevhash BLOB NOT NULL,
-		hash BLOB NOT NULL,
-		date TEXT NOT NULL UNIQUE,
-		data BLOB NOT NULL
-);
-	CREATE INDEX IF NOT EXISTS idx_date ON blockchain(date);
-	`)
-	if err != nil {
-		return nil, err
-	}
 
-	_, err = stmt.Exec()
-	if err != nil {
-		return nil, err
-	}
-
-	return &Explorer{path: path, db: db}, nil
-}
-
-func (e Explorer) SaveBlock(block Block, time_utc time.Time) (id int64, err error) {
-	stmt, err := e.db.Prepare("INSERT INTO blockchain(prevhash, hash, date, data) VALUES (?, ?, ?, ?)")
-	if err != nil {
-		return 0, err
-	}
-
-	res, err := stmt.Exec(block.PrevHash, block.Hash, time_utc, block.Data)
-	if err != nil {
-		if sqlLiteErr, ok := err.(sqlite3.Error); ok && sqlLiteErr.ExtendedCode == sqlite3.ErrConstraintUnique {
-			return 0, errors.New("this block is exist")
+func (e Explorer) CreateBlockChain(genesis string) (error) {
+	var file *os.File
+	if _, err := os.Stat(e.Path); errors.Is(err, os.ErrNotExist) {
+		file, err = os.Create(e.Path)
+		if err != nil {
+			return nil
 		}
-		return 0, err
+	} else {
+		return errors.New("BlockChain is Exist! File: " + e.Path)
 	}
 
-	id, err = res.LastInsertId()
+	defer file.Close()
+
+	b, err := Block.InitBlock(Block{}, []byte(genesis))
 	if err != nil {
-		return 0, err
+		return err
 	}
 
-	return id, nil
+	line := []byte{}
+	line = append(line, []byte("0")...)
+	line = append(line, []byte(" ")...)
+	line = append(line, b.Hash...)
+	line = append(line, []byte(" ")...)
+	line = append(line, []byte(time.Now().UTC().String())...)
+	
 
+	file.Write(line)
+
+	return nil
+}
+
+// TODO: Sync in memory blockchain and file
+func (e Explorer) AddBlock(chain Chain, time_utc time.Time) (id int64, err error) {
+	var file *os.File
+	if _, err := os.Stat(e.Path); errors.Is(err, os.ErrNotExist) {
+		file, err = os.Create(e.Path)
+		if err != nil {
+			return 0, nil
+		}
+	} else {
+		file, err = os.Open(e.Path)
+		if err != nil {
+			return 0, nil
+		}
+	}
+
+	defer file.Close()
+
+
+
+	return 0, nil
+}
+
+// TODO: Sync in memory blockchain and file
+func (e Explorer) SyncBlockChain(chain Chain) (id int64, err error) {
+	var file *os.File
+	if _, err := os.Stat(e.Path); errors.Is(err, os.ErrNotExist) {
+		file, err = os.Create(e.Path)
+		if err != nil {
+			return 0, nil
+		}
+	} else {
+		file, err = os.Open(e.Path)
+		if err != nil {
+			return 0, nil
+		}
+	}
+
+	defer file.Close()
+
+
+
+	return 0, nil
 }
