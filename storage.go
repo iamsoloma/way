@@ -5,9 +5,7 @@ import (
 	"bytes"
 	"encoding/binary"
 	"errors"
-	"fmt"
 	"io"
-	"log"
 	"os"
 	"strconv"
 	"time"
@@ -81,17 +79,16 @@ func (e Explorer) AddBlock(block Block, time_utc time.Time) (id int64, err error
 		return 0, err
 	}
 
-
 	defer file.Close()
 
 	lastID, err := lineCounter(e.Path)
 	if err != nil {
 		return lastID, errors.New("Error occurred when determining the last line of the file: " + err.Error())
 	}
-	log.Println("LastID: " + fmt.Sprint(lastID))
+	//log.Println("LastID: " + fmt.Sprint(lastID))
 
 	line := blockToLine(lastID+1, block, time_utc)
-	_, err = file.WriteString("\n"+string(line))
+	_, err = file.WriteString("\n" + string(line))
 	if err != nil {
 		return lastID, errors.New("Error occurred when adding a block to the blockchain: " + err.Error())
 	}
@@ -139,11 +136,11 @@ func lineToBlock(line []byte) (id int64, block Block, time_utc time.Time, err er
 	return id, block, time_utc, nil
 }
 
-func lineCounter(path string/*, r io.Reader*/) (int64, error) {
+func lineCounter(path string /*, r io.Reader*/) (int64, error) {
 	buf := make([]byte, 32*1024) //32 Kbyte
 	var count int64 = 0
 	lineSep := []byte{'\n'}
-	
+
 	file, err := os.OpenFile(path, os.O_RDONLY, 0600)
 	if err != nil {
 		return count, errors.New("Error occurred when determining the last line of the file: " + err.Error())

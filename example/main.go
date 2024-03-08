@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"log"
 	"time"
 
@@ -26,10 +25,15 @@ func main() {
 	}
 
 	wowBlock := way.Block.NewBlock(way.Block{}, []byte("WOW! It`s work!"), genBlock)
-	log.Printf("WOW:\n PrevHash: %q\n Hash: %q\n Data: %q\n", wowBlock.PrevHash, wowBlock.Hash, wowBlock.Data)
+	
+
 	id, err = way.Explorer.AddBlock(ExpCfg, wowBlock, time.Now().UTC())
 	if err != nil {
 		log.Println(err)
 	}
-	fmt.Printf(" ID: %d", id)
+	wowBlock, id, time_utc, err = way.Explorer.GetBlockByID(ExpCfg, 1)
+	if err != nil {
+		log.Println(err)
+	}
+	log.Printf("WOW:\n ID: %d\n Time: %s\n PrevHash: %q\n Hash: %q\n Data: %q\n", id, time_utc.String(), wowBlock.PrevHash, wowBlock.Hash, wowBlock.Data)
 }
