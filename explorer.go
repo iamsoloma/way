@@ -3,17 +3,15 @@ package way
 import (
 	"bufio"
 	"bytes"
-	"encoding/binary"
 	"errors"
 	"io"
 	"os"
-	"strconv"
 	"time"
-	//"github.com/TinajXD/way"
 )
 
 type Explorer struct {
-	Path string
+	Path  string
+	Chain Chain
 }
 
 func (e Explorer) CreateBlockChain(genesis string, time_now_utc time.Time) error {
@@ -29,66 +27,75 @@ func (e Explorer) CreateBlockChain(genesis string, time_now_utc time.Time) error
 
 	defer file.Close()
 
-	b, err := Block.InitBlock(Block{}, []byte(genesis))
+	b, err := Block.InitBlock(Block{}, []byte(genesis), time_now_utc)
 	if err != nil {
 		return err
 	}
 
-	file.Write(blockToLine(0, b, time_now_utc))
+	file.Write(Translate.BlockToLine(Translate{}, b))
 
 	return nil
 }
 
-func (e Explorer) GetLastID() (lastID int64, err error) {
+func (e Explorer) GetLastBlock() (lastBlock Block, err error) {
 	var file *os.File
 	if _, err := os.Stat(e.Path); errors.Is(err, os.ErrNotExist) {
-		return 0, errors.New("BlockChain is NOT Exist! A file is required: " + e.Path)
+		return Block{}, errors.New("BlockChain is NOT Exist! A file is required: " + e.Path)
 	}
 
 	file, err = os.Open(e.Path)
 	if err != nil {
-		return 0, err
+		return Block{}, err
 	}
 
 	defer file.Close()
 
-	lastID, err = lineCounter(e.Path)
+	lastNumOfLine, err := lineCounter(e.Path)
 	if err != nil {
-		return lastID, errors.New("Error occurred when determining the last line of the file: " + err.Error())
+		return Block{}, errors.New("Error occurred when determining the last line of the file: " + err.Error())
 	}
-	return lastID, nil
+	line, _, err := GetLineByNum(file, lastNumOfLine)
+	if err != nil {
+		return Block{}, errors.New("Error occurred when getting the last line of the file: " + err.Error())
+	}
+	lastBlock, err = Translate.LineToBlock(Translate{}, line)
+	if err != nil {
+		return Block{}, errors.New("Error occurred when translating the last line of the file: " + err.Error())
+	}
+
+
+	return lastBlock, nil
 }
 
-func (e Explorer) GetBlockByID(id int64) (block Block, lastID int64, time_utc time.Time, err error) {
+func (e Explorer) GetBlockByID(id int) (block Block, err error) {
 	var file *os.File
 	if _, err := os.Stat(e.Path); errors.Is(err, os.ErrNotExist) {
-		return Block{}, 0, time_utc, errors.New("BlockChain is NOT Exist! A file is required: " + e.Path)
+		return Block{}, errors.New("BlockChain is NOT Exist! A file is required: " + e.Path)
 	}
 
 	file, err = os.Open(e.Path)
 	if err != nil {
-		return Block{}, 0, time_utc, err
+		return Block{}, err
 	}
 
 	defer file.Close()
 
-	line, lastID, err := ReadLine(file, id)
+	line, _, err := GetLineByNum(file, id)
 	if err != nil && err != io.EOF {
-		return Block{}, lastID, time_utc, err
+		return Block{}, err
 	} else if err == io.EOF {
-		return Block{}, lastID, time_utc, errors.New("Error: the block with this ID does not exist: " + err.Error())
+		return Block{}, errors.New("Error: the block with this ID does not exist: " + err.Error())
 	}
 
-	lastID, block, time_utc, err = lineToBlock(line)
+	block, err = Translate.LineToBlock(Translate{}, line) //lineToBlock(line)
 	if err != nil {
-		return block, lastID, time_utc, errors.New("Error: GetBlockByID: " + err.Error())
+		return block, errors.New("Error: GetBlockByID: " + err.Error())
 	}
 
-	return block, lastID, time_utc, nil
+	return block, nil
 }
 
-// TODO: Sync in memory blockchain and file
-func (e Explorer) AddBlock(block Block, time_utc time.Time) (id int64, err error) {
+func (e Explorer) AddBlock(block_without_id Block) (id int, err error) {
 	var file *os.File
 	if _, err := os.Stat(e.Path); errors.Is(err, os.ErrNotExist) {
 		return 0, errors.New("BlockChain is NOT Exist! A file is required: " + e.Path)
@@ -101,64 +108,26 @@ func (e Explorer) AddBlock(block Block, time_utc time.Time) (id int64, err error
 
 	defer file.Close()
 
-	lastID, err := lineCounter(e.Path)
+	lastBlock, err := e.GetLastBlock()
 	if err != nil {
-		return lastID, errors.New("Error occurred when determining the last line of the file: " + err.Error())
+		return lastBlock.ID+1, errors.New("Error occurred when determining the last Block in the file: " + err.Error())
 	}
-	//log.Println("LastID: " + fmt.Sprint(lastID))
 
-	line := blockToLine(lastID+1, block, time_utc)
+	block_without_id.ID = lastBlock.ID + 1
+
+	line := Translate.BlockToLine(Translate{}, block_without_id)
 	_, err = file.WriteString("\n" + string(line))
 	if err != nil {
-		return lastID, errors.New("Error occurred when adding a block to the blockchain: " + err.Error())
+		return block_without_id.ID, errors.New("Error occurred when adding a block to the blockchain: " + err.Error())
 	}
 
-	return 0, nil
+	return block_without_id.ID, nil
 }
 
-// TODO: Sync in memory blockchain and file
 
-func blockToLine(id int64, block Block, time_utc time.Time) (line []byte) {
-	line = []byte{}
-
-	line = append(line, []byte(strconv.FormatInt(id, 10))...) // Block`s ID
-	line = append(line, []byte("/n")...)                      // Splitter
-	line = append(line, []byte(time_utc.String())...)         // The time of the creation of the blockchain.
-	line = append(line, []byte("/n")...)                      // Splitter
-	line = append(line, block.PrevHash...)                    // Hash of Previous Block.
-	line = append(line, []byte("/n")...)                      // Splitter
-	line = append(line, block.Hash...)                        // Hash of Block
-	line = append(line, []byte("/n")...)                      // Splitter
-	line = append(line, block.Data...)                        // Data of Block
-
-	return line
-}
-
-func lineToBlock(line []byte) (id int64, block Block, time_utc time.Time, err error) {
-	lineSep := []byte("/n")
-	time_form := "2006-01-02 15:04:05 Z0700 MST"
-
-	content := bytes.Split(line, lineSep)
-	//log.Printf("%x\n", content)
-	//id
-	buf := bytes.NewBuffer(content[0])
-	binary.Read(buf, binary.BigEndian, id)
-	//time
-	time_utc, err = time.Parse(time_form, string(content[1]))
-	if err != nil {
-		return id, block, time_utc, errors.New("Time parsing error: " + err.Error())
-	}
-	//block
-	block.PrevHash = content[2]
-	block.Hash = content[3]
-	block.Data = content[4]
-
-	return id, block, time_utc, nil
-}
-
-func lineCounter(path string /*, r io.Reader*/) (int64, error) {
-	buf := make([]byte, 32*1024) //32 Kbyte
-	var count int64 = 0
+func lineCounter(path string /*, r io.Reader*/) (int, error) {
+	buf := make([]byte, 1*1024) //32 Kbyte
+	count := 0
 	lineSep := []byte{'\n'}
 
 	file, err := os.OpenFile(path, os.O_RDONLY, 0600)
@@ -168,7 +137,7 @@ func lineCounter(path string /*, r io.Reader*/) (int64, error) {
 
 	for {
 		c, err := file.Read(buf)
-		count += int64(bytes.Count(buf[:c], lineSep))
+		count += bytes.Count(buf[:c], lineSep)
 
 		switch {
 		case err == io.EOF:
@@ -180,7 +149,7 @@ func lineCounter(path string /*, r io.Reader*/) (int64, error) {
 	}
 }
 
-func ReadLine(r io.Reader, lineNum int64) (line []byte, lastLine int64, err error) {
+func GetLineByNum(r io.Reader, lineNum int) (line []byte, lastLine int, err error) {
 	sc := bufio.NewScanner(r)
 	for sc.Scan() {
 		if lastLine == lineNum {

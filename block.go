@@ -3,15 +3,18 @@ package way
 import (
 	"crypto/sha256"
 	"strconv"
+	"time"
 )
 
 type Block struct {
+	ID int
+	Time_UTC time.Time
 	PrevHash []byte
-	Data []byte
 	Hash []byte
+	Data []byte
 }
 
-func (b Block) InitBlock (genesis []byte) (Block, error) {
+func (b Block) InitBlock (genesis []byte, time_utc time.Time) (Block, error) {
 	hasher := sha256.New()
 	genesisHash, err := hasher.Write(genesis)
 	if err != nil {
@@ -21,11 +24,13 @@ func (b Block) InitBlock (genesis []byte) (Block, error) {
 	b.Hash = []byte(strconv.Itoa(genesisHash))
 	b.Data = genesis
 	b.PrevHash = []byte{'0'}
+	b.ID = 0
+	b.Time_UTC = time_utc
 
 	return b, err
 }
 
-func (b Block) NewBlock (data []byte, prevBlock Block) (Block Block) {
+func (b Block) NewBlock (data []byte, prevBlock Block, time_utc time.Time) (Block Block) {
 	hasher := sha256.New()
 	hasher.Sum(prevBlock.Hash)
 	dataHash := hasher.Sum(data)
@@ -33,6 +38,8 @@ func (b Block) NewBlock (data []byte, prevBlock Block) (Block Block) {
 	b.Hash = dataHash
 	b.Data = data
 	b.PrevHash = prevBlock.Hash
+	b.ID = prevBlock.ID + 1
+	b.Time_UTC = time_utc
 
 	return b
 }
