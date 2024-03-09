@@ -39,6 +39,26 @@ func (e Explorer) CreateBlockChain(genesis string, time_now_utc time.Time) error
 	return nil
 }
 
+func (e Explorer) GetLastID() (lastID int64, err error) {
+	var file *os.File
+	if _, err := os.Stat(e.Path); errors.Is(err, os.ErrNotExist) {
+		return 0, errors.New("BlockChain is NOT Exist! A file is required: " + e.Path)
+	}
+
+	file, err = os.Open(e.Path)
+	if err != nil {
+		return 0, err
+	}
+
+	defer file.Close()
+
+	lastID, err = lineCounter(e.Path)
+	if err != nil {
+		return lastID, errors.New("Error occurred when determining the last line of the file: " + err.Error())
+	}
+	return lastID, nil
+}
+
 func (e Explorer) GetBlockByID(id int64) (block Block, lastID int64, time_utc time.Time, err error) {
 	var file *os.File
 	if _, err := os.Stat(e.Path); errors.Is(err, os.ErrNotExist) {
