@@ -28,7 +28,7 @@ func main() {
 	wowBlock := way.Block.NewBlock(way.Block{}, []byte("WOW! It`s work!"), genBlock)
 	
 
-	id, err = way.Explorer.AddBlock(ExpCfg, wowBlock, time.Now().UTC())
+	_, err = way.Explorer.AddBlock(ExpCfg, wowBlock, time.Now().UTC())
 	if err != nil {
 		log.Println(err)
 	}
