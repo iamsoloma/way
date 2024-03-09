@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"time"
 
@@ -36,4 +37,10 @@ func main() {
 		log.Println(err)
 	}
 	log.Printf("WOW:\n ID: %d\n Time: %s\n PrevHash: %q\n Hash: %q\n Data: %q\n", id, time_utc.String(), wowBlock.PrevHash, wowBlock.Hash, wowBlock.Data)
+
+	lastID, err := way.Explorer.GetLastID(ExpCfg)
+	if err != nil {
+		log.Println(err)
+	}
+	log.Println("Last ID in blockchain is " + fmt.Sprint(lastID) + ".")
 }
