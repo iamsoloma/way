@@ -14,20 +14,20 @@ func (Translate) BlockToLine(block Block) (line []byte) {
 	line = []byte{}
 
 	line = append(line, []byte(fmt.Sprint(block.ID))...)    // Block`s ID
-	line = append(line, []byte("/n")...)                    // Splitter
+	line = append(line, []byte("*/n*")...)                    // Splitter
 	line = append(line, []byte(block.Time_UTC.String())...) // The time of the creation of the blockchain.
-	line = append(line, []byte("/n")...)                    // Splitter
+	line = append(line, []byte("*/n*")...)                    // Splitter
 	line = append(line, block.PrevHash...)                  // Hash of Previous Block.
-	line = append(line, []byte("/n")...)                    // Splitter
+	line = append(line, []byte("*/n*")...)                    // Splitter
 	line = append(line, block.Hash...)                      // Hash of Block
-	line = append(line, []byte("/n")...)                    // Splitter
+	line = append(line, []byte("*/n*")...)                    // Splitter
 	line = append(line, block.Data...)                      // Data of Block
 
 	return line
 }
 
 func (Translate) LineToBlock(line []byte) (block Block, err error) {
-	lineSep := []byte("/n")
+	lineSep := []byte("*/n*")
 	time_form := "2006-01-02 15:04:05 Z0700 MST"
 
 	content := bytes.Split(line, lineSep)

@@ -95,7 +95,7 @@ func (e Explorer) GetBlockByID(id int) (block Block, err error) {
 	return block, nil
 }
 
-func (e Explorer) AddBlock(block_without_id Block) (id int, err error) {
+func (e Explorer) AddBlock(block Block) (id int, err error) {
 	var file *os.File
 	if _, err := os.Stat(e.Path); errors.Is(err, os.ErrNotExist) {
 		return 0, errors.New("BlockChain is NOT Exist! A file is required: " + e.Path)
@@ -113,15 +113,15 @@ func (e Explorer) AddBlock(block_without_id Block) (id int, err error) {
 		return lastBlock.ID+1, errors.New("Error occurred when determining the last Block in the file: " + err.Error())
 	}
 
-	block_without_id.ID = lastBlock.ID + 1
+	block.ID = lastBlock.ID + 1
 
-	line := Translate.BlockToLine(Translate{}, block_without_id)
+	line := Translate.BlockToLine(Translate{}, block)
 	_, err = file.WriteString("\n" + string(line))
 	if err != nil {
-		return block_without_id.ID, errors.New("Error occurred when adding a block to the blockchain: " + err.Error())
+		return block.ID, errors.New("Error occurred when adding a block to the blockchain: " + err.Error())
 	}
 
-	return block_without_id.ID, nil
+	return block.ID, nil
 }
 
 
