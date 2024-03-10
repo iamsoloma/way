@@ -12,10 +12,11 @@ import (
 type Explorer struct {
 	Path  string
 	Chain Chain
+	File *os.File
 }
 
 func (e Explorer) CreateBlockChain(genesis string, time_now_utc time.Time) error {
-	var file *os.File
+	/*var file *os.File
 	if _, err := os.Stat(e.Path); errors.Is(err, os.ErrNotExist) {
 		file, err = os.Create(e.Path)
 		if err != nil {
@@ -25,20 +26,23 @@ func (e Explorer) CreateBlockChain(genesis string, time_now_utc time.Time) error
 		return errors.New("BlockChain is Exist! File: " + e.Path)
 	}
 
-	defer file.Close()
+	defer file.Close()*/
 
 	b, err := Block.InitBlock(Block{}, []byte(genesis), time_now_utc)
 	if err != nil {
 		return err
 	}
 
-	file.Write(Translate.BlockToLine(Translate{}, b))
+	_, err = e.File.Write(Translate.BlockToLine(Translate{}, b))
+	if err != nil {
+		return errors.New("Error occurred when writing the initialization block to " + e.Path + ": " + err.Error())
+	}
 
 	return nil
 }
 
 func (e Explorer) GetLastBlock() (lastBlock Block, err error) {
-	var file *os.File
+	/*var file *os.File
 	if _, err := os.Stat(e.Path); errors.Is(err, os.ErrNotExist) {
 		return Block{}, errors.New("BlockChain is NOT Exist! A file is required: " + e.Path)
 	}
@@ -48,13 +52,13 @@ func (e Explorer) GetLastBlock() (lastBlock Block, err error) {
 		return Block{}, err
 	}
 
-	defer file.Close()
+	defer file.Close()*/
 
-	lastNumOfLine, err := lineCounter(e.Path)
+	lastNumOfLine, err := lineCounter(e.File)
 	if err != nil {
 		return Block{}, errors.New("Error occurred when determining the last line of the file: " + err.Error())
 	}
-	line, _, err := GetLineByNum(file, lastNumOfLine)
+	line, _, err := GetLineByNum(e.File, lastNumOfLine)
 	if err != nil {
 		return Block{}, errors.New("Error occurred when getting the last line of the file: " + err.Error())
 	}
@@ -68,7 +72,7 @@ func (e Explorer) GetLastBlock() (lastBlock Block, err error) {
 }
 
 func (e Explorer) GetBlockByID(id int) (block Block, err error) {
-	var file *os.File
+	/*var file *os.File
 	if _, err := os.Stat(e.Path); errors.Is(err, os.ErrNotExist) {
 		return Block{}, errors.New("BlockChain is NOT Exist! A file is required: " + e.Path)
 	}
@@ -78,14 +82,15 @@ func (e Explorer) GetBlockByID(id int) (block Block, err error) {
 		return Block{}, err
 	}
 
-	defer file.Close()
+	defer file.Close()*/
 
-	line, _, err := GetLineByNum(file, id)
+	line, _, err := GetLineByNum(e.File, id)
 	if err != nil && err != io.EOF {
 		return Block{}, err
 	} else if err == io.EOF {
 		return Block{}, errors.New("Error: the block with this ID does not exist: " + err.Error())
 	}
+	//fmt.Println(line)
 
 	block, err = Translate.LineToBlock(Translate{}, line) //lineToBlock(line)
 	if err != nil {
@@ -96,7 +101,7 @@ func (e Explorer) GetBlockByID(id int) (block Block, err error) {
 }
 
 func (e Explorer) AddBlock(block Block) (id int, err error) {
-	var file *os.File
+	/*var file *os.File
 	if _, err := os.Stat(e.Path); errors.Is(err, os.ErrNotExist) {
 		return 0, errors.New("BlockChain is NOT Exist! A file is required: " + e.Path)
 	}
@@ -106,7 +111,7 @@ func (e Explorer) AddBlock(block Block) (id int, err error) {
 		return 0, err
 	}
 
-	defer file.Close()
+	defer file.Close()*/
 
 	lastBlock, err := e.GetLastBlock()
 	if err != nil {
@@ -116,7 +121,7 @@ func (e Explorer) AddBlock(block Block) (id int, err error) {
 	block.ID = lastBlock.ID + 1
 
 	line := Translate.BlockToLine(Translate{}, block)
-	_, err = file.WriteString("\n" + string(line))
+	_, err = e.File.WriteString("\n" + string(line))
 	if err != nil {
 		return block.ID, errors.New("Error occurred when adding a block to the blockchain: " + err.Error())
 	}
@@ -125,18 +130,13 @@ func (e Explorer) AddBlock(block Block) (id int, err error) {
 }
 
 
-func lineCounter(path string /*, r io.Reader*/) (int, error) {
+func lineCounter(f *os.File) (int, error) {
 	buf := make([]byte, 1*1024) //32 Kbyte
 	count := 0
 	lineSep := []byte{'\n'}
 
-	file, err := os.OpenFile(path, os.O_RDONLY, 0600)
-	if err != nil {
-		return count, errors.New("Error occurred when determining the last line of the file: " + err.Error())
-	}
-
 	for {
-		c, err := file.Read(buf)
+		c, err := f.Read(buf)
 		count += bytes.Count(buf[:c], lineSep)
 
 		switch {
@@ -149,8 +149,8 @@ func lineCounter(path string /*, r io.Reader*/) (int, error) {
 	}
 }
 
-func GetLineByNum(r io.Reader, lineNum int) (line []byte, lastLine int, err error) {
-	sc := bufio.NewScanner(r)
+func GetLineByNum(f *os.File, lineNum int) (line []byte, lastLine int, err error) {
+	sc := bufio.NewScanner(f)
 	for sc.Scan() {
 		if lastLine == lineNum {
 			return sc.Bytes(), lastLine, sc.Err()
