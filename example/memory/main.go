@@ -26,7 +26,7 @@ func main() {
 			curBlock.ID, curBlock.Time_UTC.String(), curBlock.PrevHash, curBlock.Hash, string(curBlock.Data))
 	}
 }
-
+//random
 func somestr(lenght int) string {
 	letters := []byte("abcdefghijklmnopqrstvwxyzABCDEFGHIGKLMNOPQRSTVWXYZ1234567890!@#$%^&*()_-+=")
 	out := []byte{}

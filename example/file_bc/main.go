@@ -60,6 +60,7 @@ func main() {
 	log.Println("Last ID in blockchain is " + fmt.Sprint(lastBlock.ID) + ".")
 }
 
+//random
 func somestr(lenght int) string {
 	letters := []byte("abcdefghijklmnopqrstvwxyzABCDEFGHIGKLMNOPQRSTVWXYZ1234567890!@#$%^&*()_-+=")
 	out := []byte{}
