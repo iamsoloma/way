@@ -12,12 +12,15 @@ import (
 func main() {
 	inp := 0
 	genesis := ""
-	fmt.Print("Genesis block`s info: ")
+	lenght := 0
+	fmt.Print("Genesis block`s info data: ")
     fmt.Scanln(&genesis)
-	fmt.Print("The desired number of blocks: ")
+	fmt.Print("The desired number of blocks(random data): ")
     fmt.Scanln(&inp)
+	fmt.Print("The desired lenght of random data: ")
+    fmt.Scanln(&lenght)
 
-	filename := "./example/ex1.bc"
+	filename := "./ex1.bc"
 
 	ExpCfg := way.Explorer{Path: filename}
 
@@ -35,7 +38,7 @@ func main() {
 
 	for i := 1; i <= inp; i++ {
 		lastblock, _ := way.Explorer.GetLastBlock(ExpCfg)
-		curblock := way.Block.NewBlock(way.Block{}, []byte(somelet(i)), lastblock, time.Now().UTC())
+		curblock := way.Block.NewBlock(way.Block{}, []byte(somestr(lenght)), lastblock, time.Now().UTC())
 		_, err = way.Explorer.AddBlock(ExpCfg, curblock)
 		if err != nil {
 			log.Println(err)
@@ -57,11 +60,11 @@ func main() {
 	log.Println("Last ID in blockchain is " + fmt.Sprint(lastBlock.ID) + ".")
 }
 
-func somelet(i int) string {
+func somestr(lenght int) string {
 	letters := []byte("abcdefghijklmnopqrstvwxyzABCDEFGHIGKLMNOPQRSTVWXYZ1234567890!@#$%^&*()_-+=")
 	out := []byte{}
 	x := len(letters)
-	for y := 1000; y > 0; y-- {
+	for y := lenght; y > 0; y-- {
 		out = append(out, letters[rand.Intn(x)])
 	}
 	return string(out)
