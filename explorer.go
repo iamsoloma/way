@@ -16,7 +16,7 @@ type Explorer struct {
 }
 
 func (e Explorer) CreateBlockChain(genesis string, time_now_utc time.Time) error {
-	/*var file *os.File
+	var file *os.File
 	if _, err := os.Stat(e.Path); errors.Is(err, os.ErrNotExist) {
 		file, err = os.Create(e.Path)
 		if err != nil {
@@ -26,17 +26,19 @@ func (e Explorer) CreateBlockChain(genesis string, time_now_utc time.Time) error
 		return errors.New("BlockChain is Exist! File: " + e.Path)
 	}
 
-	defer file.Close()*/
+	defer file.Close()
 
 	b, err := Block.InitBlock(Block{}, []byte(genesis), time_now_utc)
 	if err != nil {
 		return err
 	}
 
-	_, err = e.File.Write(Translate.BlockToLine(Translate{}, b))
+	_, err = file.Write(Translate.BlockToLine(Translate{}, b))
 	if err != nil {
 		return errors.New("Error occurred when writing the initialization block to " + e.Path + ": " + err.Error())
 	}
+
+	e.File = file
 
 	return nil
 }
@@ -101,7 +103,7 @@ func (e Explorer) GetBlockByID(id int) (block Block, err error) {
 }
 
 func (e Explorer) AddBlock(block Block) (id int, err error) {
-	/*var file *os.File
+	var file *os.File
 	if _, err := os.Stat(e.Path); errors.Is(err, os.ErrNotExist) {
 		return 0, errors.New("BlockChain is NOT Exist! A file is required: " + e.Path)
 	}
@@ -111,7 +113,7 @@ func (e Explorer) AddBlock(block Block) (id int, err error) {
 		return 0, err
 	}
 
-	defer file.Close()*/
+	defer file.Close()
 
 	lastBlock, err := e.GetLastBlock()
 	if err != nil {
@@ -121,10 +123,12 @@ func (e Explorer) AddBlock(block Block) (id int, err error) {
 	block.ID = lastBlock.ID + 1
 
 	line := Translate.BlockToLine(Translate{}, block)
-	_, err = e.File.WriteString("\n" + string(line))
+	_, err = file.WriteString("\n" + string(line))
 	if err != nil {
 		return block.ID, errors.New("Error occurred when adding a block to the blockchain: " + err.Error())
 	}
+
+	e.File = file
 
 	return block.ID, nil
 }
