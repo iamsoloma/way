@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
+	"os"
 	"strconv"
 	"time"
 )
@@ -48,4 +49,37 @@ func (Translate) LineToBlock(line []byte) (block Block, err error) {
 	block.Data = content[4]
 
 	return block, nil
+}
+
+func (Translate) FileToChain(exp *Explorer) (err error) {
+
+	lBlock, err := exp.GetLastBlock()
+	if err != nil {
+		return errors.New("Error occurred when translating the file to chain: " + err.Error())
+	}
+	
+	for i := 0; i <= lBlock.ID; i++ {
+		curblock, err := exp.GetBlockByID(i)
+		if err != nil {
+			return errors.New("Error occurred when translating the file to chain: " + err.Error())
+		}
+		exp.Chain.blocks = append(exp.Chain.blocks, curblock)
+	}
+
+	return nil
+}
+
+func (Translate) ChainToFile(exp *Explorer) (file os.File, err error) {
+
+	lBlock := exp.Chain.GetLastBlock()
+	
+	for i := 0; i <= lBlock.ID; i++ {
+		curblock := exp.Chain.GetBlockByID(i)
+		_, err := exp.AddBlock(curblock)
+		if err != nil {
+			return os.File{}, errors.New("Error occurred when translating the chain to file: " + err.Error())
+		}
+	}
+
+	return 
 }
