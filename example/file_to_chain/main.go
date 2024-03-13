@@ -16,7 +16,7 @@ func main() {
 	genesis := "FileToChain"
 	lenght := 10
 
-	filename := "./ex3.bc"
+	filename := "./blockchains/ex3.bc"
 	ExpCfg := way.Explorer{Path: filename}
 
 	var file *os.File
