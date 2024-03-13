@@ -20,7 +20,7 @@ func main() {
 	fmt.Print("The desired lenght of random data: ")
     fmt.Scanln(&lenght)
 
-	filename := "./ex1.bc"
+	filename := "./blockchains/ex1.bc"
 
 	ExpCfg := way.Explorer{Path: filename}
 
