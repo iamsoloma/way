@@ -1,11 +1,9 @@
 package main
 
 import (
-	"errors"
 	"fmt"
 	"log"
 	"math/rand"
-	"os"
 	"time"
 
 	"github.com/TinajXD/way"
@@ -22,37 +20,16 @@ func main() {
 	fmt.Print("The desired lenght of random data: ")
     fmt.Scanln(&lenght)
 
-//<<<<<<< main
 	filename := "./blockchains/ex1.bc"
 
-//=======
-//	filename := "./ex1.bc"
-//>>>>>>> DEV
 	ExpCfg := way.Explorer{Path: filename}
 
-	if _, err := os.Stat(ExpCfg.Path); errors.Is(err, os.ErrNotExist) {
-		ExpCfg.File, err = os.Create(ExpCfg.Path)
-		if err != nil {
-			log.Println(err)
-		}
-	} else {
-		log.Println(errors.New("BlockChain is Exist! File: " + ExpCfg.Path))
-		ExpCfg.File, err = os.Open(ExpCfg.Path)
-		if err != nil {
-			log.Println(err)
-		}
-	}
-
-	defer ExpCfg.File.Close()
-
-
-
-	err := ExpCfg.CreateBlockChain(genesis, time.Now().UTC())
+	err := way.Explorer.CreateBlockChain(ExpCfg, genesis, time.Now().UTC())
 	if err != nil {
 		log.Println(err)
 	}
 
-	genBlock, err := ExpCfg.GetBlockByID(0)
+	genBlock, err := way.Explorer.GetBlockByID(ExpCfg, 0)
 	if err != nil {
 		log.Println(err)
 	} else {
@@ -60,15 +37,15 @@ func main() {
 	}
 
 	for i := 1; i <= inp; i++ {
-		lastblock, _ := ExpCfg.GetLastBlock()
+		lastblock, _ := way.Explorer.GetLastBlock(ExpCfg)
 		curblock := way.Block.NewBlock(way.Block{}, []byte(somestr(lenght)), lastblock, time.Now().UTC())
-		_, err = ExpCfg.AddBlock(curblock)
+		_, err = way.Explorer.AddBlock(ExpCfg, curblock)
 		if err != nil {
 			log.Println(err)
 		}
 	}
 	for i := 0; i <= inp; i++ {
-		curblock, err := ExpCfg.GetBlockByID(i)
+		curblock, err := way.Explorer.GetBlockByID(ExpCfg, i)
 		if err != nil {
 			log.Println(err)
 		}
@@ -76,7 +53,7 @@ func main() {
 	}
 
 
-	lastBlock, err := ExpCfg.GetLastBlock()
+	lastBlock, err := way.Explorer.GetLastBlock(ExpCfg)
 	if err != nil {
 		log.Println(err)
 	}
