@@ -19,9 +19,9 @@ func main() {
 	filename := "./ex3.bc"
 	ExpCfg := way.Explorer{Path: filename}
 
-
+	var file *os.File
 	if _, err := os.Stat(ExpCfg.Path); errors.Is(err, os.ErrNotExist) {
-		ExpCfg.File, err = os.Create(ExpCfg.Path)
+		file, err = os.Create(ExpCfg.Path)
 		if err != nil {
 			log.Println(err)
 		}
@@ -29,7 +29,7 @@ func main() {
 		log.Println(errors.New("BlockChain is Exist! File: " + ExpCfg.Path))
 	}
 
-	defer ExpCfg.File.Close()
+	defer file.Close()
 
 	err := way.Explorer.CreateBlockChain(ExpCfg, genesis, time.Now().UTC())
 	if err != nil {
