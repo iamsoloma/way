@@ -22,7 +22,12 @@ func main() {
 	fmt.Print("The desired lenght of random data: ")
     fmt.Scanln(&lenght)
 
-	filename := "./ex1.bc"
+//<<<<<<< main
+	filename := "./blockchains/ex1.bc"
+
+//=======
+//	filename := "./ex1.bc"
+//>>>>>>> DEV
 	ExpCfg := way.Explorer{Path: filename}
 
 	if _, err := os.Stat(ExpCfg.Path); errors.Is(err, os.ErrNotExist) {
