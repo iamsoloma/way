@@ -9,7 +9,7 @@ import (
 )
 
 func main() {
-	mem_chain := way.Chain{}
+	mem_chain := way.Explorer{}.Chain
 	_ = mem_chain.InitChain([]byte("Hi!"), time.Now())
 
 	//fmt.Println(mem_chain)

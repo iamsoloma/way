@@ -10,7 +10,7 @@ import (
 )
 
 func main() {
-	fmt.Println("From file to memory demo.")
+	fmt.Println("From memory to file demo.")
 	inp := 0
 	genesis := ""
 	lenght := 0
@@ -21,34 +21,36 @@ func main() {
 	fmt.Print("The desired lenght of random data: ")
     fmt.Scanln(&lenght)
 
-	filename := "./blockchains/ex3.bc"
+	filename := "./blockchains/ex4.bc"
 
 	ExpCfg := way.Explorer{Path: filename}
 
-	fmt.Println("Writing...")
-	err := way.Explorer.CreateBlockChain(ExpCfg, genesis, time.Now().UTC())
+	log.Println("Generating...")
+	err := ExpCfg.Chain.InitChain([]byte(genesis), time.Now().UTC())
 	if err != nil {
-		log.Println(err)
+		panic(err)
 	}
 
 	for i := 1; i <= inp; i++ {
-		lastblock, _ := way.Explorer.GetLastBlock(ExpCfg)
-		curblock := way.Block.NewBlock(way.Block{}, []byte(somestr(lenght)), lastblock, time.Now().UTC())
-		_, err = way.Explorer.AddBlock(ExpCfg, curblock)
-		if err != nil {
-			log.Println(err)
-		}
+		ExpCfg.Chain.NewBlockInChain([]byte(somestr(lenght)), time.Now().UTC())
 	}
 
 	fmt.Println("Translating...")
 	startTime := time.Now()
-	way.Translate.FileToChain(way.Translate{}, &ExpCfg)
+	way.Translate.ChainToFile(way.Translate{}, &ExpCfg)
 	endTime := time.Since(startTime)
 
 
 	fmt.Println("-------------------------------------------------------------\nAll blocks:")
-	for i := 0; i < ExpCfg.Chain.GetLastBlock().ID; i++ {
-		curblock := ExpCfg.Chain.GetBlockByID(i)
+	lastBlock, err := ExpCfg.GetLastBlock()
+	if err != nil {
+		panic(err)
+	}
+	for i := 0; i <lastBlock.ID; i++ {
+		curblock, err := ExpCfg.GetBlockByID(i)
+		if err != nil {
+			log.Println(err)
+		}
 		log.Printf("Block:\n ID: %d\n Time: %s\n PrevHash: %x\n Hash: %x\n Data: %q\n", curblock.ID, curblock.Time_UTC.String(), curblock.PrevHash, curblock.Hash, curblock.Data)
 	}
 	fmt.Println("-------------------------------------------------------------")
