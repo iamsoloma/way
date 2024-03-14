@@ -36,6 +36,7 @@ func main() {
 		log.Printf("Genesis:\n ID: %d\n Time: %s\n PrevHash: %q\n Hash: %q\n Data: %q\n", genBlock.ID, genBlock.Time_UTC.String(), genBlock.PrevHash, genBlock.Hash, genBlock.Data)
 	}
 
+	startWrite := time.Now()
 	for i := 1; i <= inp; i++ {
 		lastblock, _ := way.Explorer.GetLastBlock(ExpCfg)
 		curblock := way.Block.NewBlock(way.Block{}, []byte(somestr(lenght)), lastblock, time.Now().UTC())
@@ -44,13 +45,26 @@ func main() {
 			log.Println(err)
 		}
 	}
+	endWrite := time.Since(startWrite)
+
+	readed := []string{}
+	startRead := time.Now()
 	for i := 0; i <= inp; i++ {
 		curblock, err := way.Explorer.GetBlockByID(ExpCfg, i)
 		if err != nil {
 			log.Println(err)
 		}
-		log.Printf("Block:\n ID: %d\n Time: %s\n PrevHash: %x\n Hash: %x\n Data: %q\n", curblock.ID, curblock.Time_UTC.String(), curblock.PrevHash, curblock.Hash, curblock.Data)
+		//log.Printf("Block:\n ID: %d\n Time: %s\n PrevHash: %x\n Hash: %x\n Data: %q\n", curblock.ID, curblock.Time_UTC.String(), curblock.PrevHash, curblock.Hash, curblock.Data)
+		curstring := fmt.Sprintf("Block:\n ID: %d\n Time: %s\n PrevHash: %x\n Hash: %x\n Data: %q\n", curblock.ID, curblock.Time_UTC.String(), curblock.PrevHash, curblock.Hash, curblock.Data)
+		readed = append(readed, curstring)
 	}
+	endRead := time.Since(startRead)
+
+	fmt.Println("-------------------------------------------------------------\nAll blocks:")
+	for i := 0; i < len(readed); i++ {
+		log.Print(readed[i])
+	}
+	fmt.Println("-------------------------------------------------------------")
 
 
 	lastBlock, err := way.Explorer.GetLastBlock(ExpCfg)
@@ -58,6 +72,8 @@ func main() {
 		log.Println(err)
 	}
 	log.Println("Last ID in blockchain is " + fmt.Sprint(lastBlock.ID) + ".")
+	log.Println("Recording time per block: ", endWrite / time.Duration(inp))
+	log.Println("Reading time per block: ", endRead / time.Duration(inp))
 }
 
 //random
