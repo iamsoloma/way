@@ -70,10 +70,12 @@ func (Translate) FileToChain(exp *Explorer) (err error) {
 }
 
 func (Translate) ChainToFile(exp *Explorer) (file os.File, err error) {
+	genesis := exp.Chain.GetBlockByID(0)
+	exp.CreateBlockChain(string(genesis.Data), genesis.Time_UTC)
 
 	lBlock := exp.Chain.GetLastBlock()
 	
-	for i := 0; i <= lBlock.ID; i++ {
+	for i := 1; i <= lBlock.ID; i++ {
 		curblock := exp.Chain.GetBlockByID(i)
 		_, err := exp.AddBlock(curblock)
 		if err != nil {
