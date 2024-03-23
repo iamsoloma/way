@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
-	"os"
 	"strconv"
 	"time"
 )
@@ -69,7 +68,7 @@ func (Translate) FileToChain(exp *Explorer) (err error) {
 	return nil
 }
 
-func (Translate) ChainToFile(exp *Explorer) (file os.File, err error) {
+func (Translate) ChainToFile(exp *Explorer) (err error) {
 	genesis := exp.Chain.GetBlockByID(0)
 	exp.CreateBlockChain(string(genesis.Data), genesis.Time_UTC)
 
@@ -79,9 +78,9 @@ func (Translate) ChainToFile(exp *Explorer) (file os.File, err error) {
 		curblock := exp.Chain.GetBlockByID(i)
 		_, err := exp.AddBlock(curblock)
 		if err != nil {
-			return os.File{}, errors.New("Error occurred when translating the chain to file: " + err.Error())
+			return errors.New("Error occurred when translating the chain to file: " + err.Error())
 		}
 	}
 
-	return 
+	return nil
 }

@@ -11,17 +11,22 @@ import (
 
 type Explorer struct {
 	Path  string
+	Name string
 	Chain Chain
 }
 
 func (e Explorer) CreateBlockChain(genesis string, time_now_utc time.Time) error {
 	var file *os.File
-	if _, err := os.Stat(e.Path); errors.Is(err, os.ErrNotExist) {
-		file, err = os.Create(e.Path)
+	if _, err := os.Stat(FullPath(e.Path, e.Name)); errors.Is(err, os.ErrNotExist) {
+		err = os.MkdirAll(e.Path, 0774)
 		if err != nil {
-			return errors.New("Can`t create blockchain! Can`t create a file: " + e.Path)
+			return errors.New("Can`t create a workspace! Can`t create a path: " + e.Path + "\n" + err.Error())
 		}
-	} else {
+		file, err = os.Create(FullPath(e.Path, e.Name))
+		if err != nil {
+			return errors.New("Can`t create blockchain! Can`t create a file: " + FullPath(e.Path, e.Name))
+		}
+	} else if os.IsExist(err){
 		return errors.New("BlockChain is Exist! File: " + e.Path)
 	}
 
@@ -39,18 +44,18 @@ func (e Explorer) CreateBlockChain(genesis string, time_now_utc time.Time) error
 
 func (e Explorer) GetLastBlock() (lastBlock Block, err error) {
 	var file *os.File
-	if _, err := os.Stat(e.Path); errors.Is(err, os.ErrNotExist) {
+	if _, err := os.Stat(FullPath(e.Path, e.Name)); errors.Is(err, os.ErrNotExist) {
 		return Block{}, errors.New("BlockChain is NOT Exist! A file is required: " + e.Path)
 	}
 
-	file, err = os.Open(e.Path)
+	file, err = os.Open(FullPath(e.Path, e.Name))
 	if err != nil {
 		return Block{}, err
 	}
 
 	defer file.Close()
 
-	lastNumOfLine, err := lineCounter(e.Path)
+	lastNumOfLine, err := lineCounter(FullPath(e.Path, e.Name))
 	if err != nil {
 		return Block{}, errors.New("Error occurred when determining the last line of the file: " + err.Error())
 	}
@@ -69,11 +74,11 @@ func (e Explorer) GetLastBlock() (lastBlock Block, err error) {
 
 func (e Explorer) GetBlockByID(id int) (block Block, err error) {
 	var file *os.File
-	if _, err := os.Stat(e.Path); errors.Is(err, os.ErrNotExist) {
-		return Block{}, errors.New("BlockChain is NOT Exist! A file is required: " + e.Path)
+	if _, err := os.Stat(FullPath(e.Path, e.Name)); errors.Is(err, os.ErrNotExist) {
+		return Block{}, errors.New("BlockChain is NOT Exist! A file is required: " + FullPath(e.Path, e.Name))
 	}
 
-	file, err = os.Open(e.Path)
+	file, err = os.Open(FullPath(e.Path, e.Name))
 	if err != nil {
 		return Block{}, err
 	}
@@ -97,11 +102,11 @@ func (e Explorer) GetBlockByID(id int) (block Block, err error) {
 
 func (e Explorer) AddBlock(block Block) (id int, err error) {
 	var file *os.File
-	if _, err := os.Stat(e.Path); errors.Is(err, os.ErrNotExist) {
+	if _, err := os.Stat(FullPath(e.Path, e.Name)); errors.Is(err, os.ErrNotExist) {
 		return 0, errors.New("BlockChain is NOT Exist! A file is required: " + e.Path)
 	}
 
-	file, err = os.OpenFile(e.Path, os.O_APPEND|os.O_WRONLY, os.ModeAppend)
+	file, err = os.OpenFile(FullPath(e.Path, e.Name), os.O_APPEND|os.O_WRONLY, os.ModeAppend)
 	if err != nil {
 		return 0, err
 	}
@@ -125,12 +130,12 @@ func (e Explorer) AddBlock(block Block) (id int, err error) {
 }
 
 
-func lineCounter(path string /*, r io.Reader*/) (int, error) {
+func lineCounter(fullpath string) (int, error) {
 	buf := make([]byte, 1*1024) //32 Kbyte
 	count := 0
 	lineSep := []byte{'\n'}
 
-	file, err := os.OpenFile(path, os.O_RDONLY, 0600)
+	file, err := os.OpenFile(fullpath, os.O_RDONLY, 0600)
 	if err != nil {
 		return count, errors.New("Error occurred when determining the last line of the file: " + err.Error())
 	}

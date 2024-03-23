@@ -20,9 +20,10 @@ func main() {
 	fmt.Print("The desired lenght of random data: ")
     fmt.Scanln(&lenght)
 
-	filename := "./blockchains/ex1.bc"
+	path := "./blockchains"
+	name := "ex1"
 
-	ExpCfg := way.Explorer{Path: filename}
+	ExpCfg := way.Explorer{Path: path, Name: name}
 
 	err := way.Explorer.CreateBlockChain(ExpCfg, genesis, time.Now().UTC())
 	if err != nil {
