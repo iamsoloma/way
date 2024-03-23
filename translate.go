@@ -76,7 +76,7 @@ func (Translate) ChainToFile(exp *Explorer) (err error) {
 	
 	for i := 1; i <= lBlock.ID; i++ {
 		curblock := exp.Chain.GetBlockByID(i)
-		_, err := exp.AddBlock(curblock)
+		_, err := exp.AddBlock(curblock.Data, curblock.Time_UTC)
 		if err != nil {
 			return errors.New("Error occurred when translating the chain to file: " + err.Error())
 		}

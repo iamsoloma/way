@@ -39,9 +39,7 @@ func main() {
 
 	startWrite := time.Now()
 	for i := 1; i <= inp; i++ {
-		lastblock, _ := way.Explorer.GetLastBlock(ExpCfg)
-		curblock := way.Block.NewBlock(way.Block{}, []byte(somestr(lenght)), lastblock, time.Now().UTC())
-		_, err = way.Explorer.AddBlock(ExpCfg, curblock)
+		_, err = ExpCfg.AddBlock([]byte(somestr(lenght)), time.Now().UTC())
 		if err != nil {
 			log.Println(err)
 		}

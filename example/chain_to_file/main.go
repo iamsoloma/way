@@ -22,7 +22,7 @@ func main() {
     fmt.Scanln(&lenght)
 
 	path := "./blockchains"
-	name := "ex4.bc"
+	name := "ex4"
 
 	ExpCfg := way.Explorer{Path: path, Name: name}
 

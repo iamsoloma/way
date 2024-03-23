@@ -18,7 +18,7 @@ type Explorer struct {
 func (e Explorer) CreateBlockChain(genesis string, time_now_utc time.Time) error {
 	var file *os.File
 	if _, err := os.Stat(FullPath(e.Path, e.Name)); errors.Is(err, os.ErrNotExist) {
-		err = os.MkdirAll(e.Path, 0774)
+		err = os.MkdirAll(e.Path, 0764)
 		if err != nil {
 			return errors.New("Can`t create a workspace! Can`t create a path: " + e.Path + "\n" + err.Error())
 		}
@@ -32,7 +32,8 @@ func (e Explorer) CreateBlockChain(genesis string, time_now_utc time.Time) error
 
 	defer file.Close()
 
-	b, err := Block.InitBlock(Block{}, []byte(genesis), time_now_utc)
+	b := Block{}
+	err := b.InitBlock([]byte(genesis), time_now_utc)
 	if err != nil {
 		return err
 	}
@@ -100,7 +101,7 @@ func (e Explorer) GetBlockByID(id int) (block Block, err error) {
 	return block, nil
 }
 
-func (e Explorer) AddBlock(block Block) (id int, err error) {
+func (e Explorer) AddBlock(data []byte, time_utc time.Time) (id int, err error) {
 	var file *os.File
 	if _, err := os.Stat(FullPath(e.Path, e.Name)); errors.Is(err, os.ErrNotExist) {
 		return 0, errors.New("BlockChain is NOT Exist! A file is required: " + e.Path)
@@ -118,15 +119,16 @@ func (e Explorer) AddBlock(block Block) (id int, err error) {
 		return lastBlock.ID+1, errors.New("Error occurred when determining the last Block in the file: " + err.Error())
 	}
 
-	block.ID = lastBlock.ID + 1
+	nBlock := Block{}
+	nBlock.NewBlock(data, lastBlock, time_utc)
 
-	line := Translate.BlockToLine(Translate{}, block)
+	line := Translate.BlockToLine(Translate{}, nBlock)
 	_, err = file.WriteString("\n" + string(line))
 	if err != nil {
-		return block.ID, errors.New("Error occurred when adding a block to the blockchain: " + err.Error())
+		return nBlock.ID, errors.New("Error occurred when adding a block to the blockchain: " + err.Error())
 	}
 
-	return block.ID, nil
+	return nBlock.ID, nil
 }
 
 

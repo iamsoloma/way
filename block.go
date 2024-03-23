@@ -14,11 +14,11 @@ type Block struct {
 	Data []byte
 }
 
-func (b Block) InitBlock (genesis []byte, time_utc time.Time) (Block, error) {
+func (b *Block) InitBlock (genesis []byte, time_utc time.Time) (error) {
 	hasher := sha256.New()
 	genesisHash, err := hasher.Write(genesis)
 	if err != nil {
-		return Block{}, err
+		return err
 	}
 
 	b.Hash = []byte(strconv.Itoa(genesisHash))
@@ -27,10 +27,10 @@ func (b Block) InitBlock (genesis []byte, time_utc time.Time) (Block, error) {
 	b.ID = 0
 	b.Time_UTC = time_utc
 
-	return b, err
+	return err
 }
 
-func (b Block) NewBlock (data []byte, prevBlock Block, time_utc time.Time) (Block Block) {
+func (b *Block) NewBlock (data []byte, prevBlock Block, time_utc time.Time) {
 	hasher := sha256.New()
 	hasher.Sum(prevBlock.Hash)
 	dataHash := hasher.Sum(data)
@@ -40,6 +40,4 @@ func (b Block) NewBlock (data []byte, prevBlock Block, time_utc time.Time) (Bloc
 	b.PrevHash = prevBlock.Hash
 	b.ID = prevBlock.ID + 1
 	b.Time_UTC = time_utc
-
-	return b
 }

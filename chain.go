@@ -8,7 +8,8 @@ type Chain struct {
 }
 
 func (c *Chain) InitChain (genesis []byte, time_utc time.Time) (error){
-	InBl, err := Block.InitBlock(Block{}, genesis, time_utc)
+	InBl := Block{}
+	err := InBl.InitBlock(genesis, time_utc)
 	if err != nil {
 		return err
 	}
@@ -18,7 +19,8 @@ func (c *Chain) InitChain (genesis []byte, time_utc time.Time) (error){
 }
 
 func (c *Chain) NewBlockInChain (data []byte, time_utc time.Time) (id int) {
-	NewBlock := Block.NewBlock(Block{}, data, c.blocks[len(c.blocks) - 1], time_utc)
+	NewBlock := Block{}
+	NewBlock.NewBlock(data, c.blocks[len(c.blocks) - 1], time_utc)
 	c.blocks = append(c.blocks, NewBlock)
 
 	return NewBlock.ID

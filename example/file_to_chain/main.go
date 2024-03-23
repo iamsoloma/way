@@ -22,7 +22,7 @@ func main() {
     fmt.Scanln(&lenght)
 
 	path := "./blockchains"
-	name := "ex3.bc"
+	name := "ex3"
 
 	ExpCfg := way.Explorer{Path: path, Name: name}
 
@@ -33,9 +33,7 @@ func main() {
 	}
 
 	for i := 1; i <= inp; i++ {
-		lastblock, _ := way.Explorer.GetLastBlock(ExpCfg)
-		curblock := way.Block.NewBlock(way.Block{}, []byte(somestr(lenght)), lastblock, time.Now().UTC())
-		_, err = way.Explorer.AddBlock(ExpCfg, curblock)
+		_, err = ExpCfg.AddBlock([]byte(somestr(lenght)), time.Now().UTC())
 		if err != nil {
 			log.Println(err)
 		}
