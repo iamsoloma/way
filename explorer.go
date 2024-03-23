@@ -19,7 +19,7 @@ func (e Explorer) CreateBlockChain(genesis string, time_now_utc time.Time) error
 	if _, err := os.Stat(e.Path); errors.Is(err, os.ErrNotExist) {
 		file, err = os.Create(e.Path)
 		if err != nil {
-			return nil
+			return errors.New("Can`t create blockchain! Can`t create a file: " + e.Path)
 		}
 	} else {
 		return errors.New("BlockChain is Exist! File: " + e.Path)
