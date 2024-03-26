@@ -142,6 +142,8 @@ func lineCounter(fullpath string) (int, error) {
 		return count, errors.New("Error occurred when determining the last line of the file: " + err.Error())
 	}
 
+	defer file.Close()
+
 	for {
 		c, err := file.Read(buf)
 		count += bytes.Count(buf[:c], lineSep)
