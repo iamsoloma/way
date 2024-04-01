@@ -22,8 +22,9 @@ func main() {
 
 	path := "./blockchains"
 	name := "ex1"
+	partition := 5
 
-	ExpCfg := way.Explorer{Path: path, Name: name}
+	ExpCfg := way.Explorer{Path: path, Name: name, Partition: partition}
 
 	err := way.Explorer.CreateBlockChain(ExpCfg, genesis, time.Now().UTC())
 	if err != nil {

@@ -3,6 +3,7 @@ package way
 import (
 	"errors"
 	"io"
+	"math"
 	"os"
 	"sort"
 	"strconv"
@@ -11,15 +12,16 @@ import (
 )
 
 type Explorer struct {
-	Path  string
-	Name  string
-	Part  int
-	Chain Chain
+	Path      string
+	Name      string
+	Part      int
+	Partition int
+	Chain     Chain
 }
 
 func (e Explorer) CreateBlockChain(genesis string, time_now_utc time.Time) error {
 	var file *os.File
-	e.Part = 0
+	e.Part = 1
 	if _, err := os.Stat(FullPath(e.Path, e.Name, e.Part)); errors.Is(err, os.ErrNotExist) {
 		err = os.MkdirAll(BlockChainPath(e.Path, e.Name), 0764)
 		if err != nil {
@@ -68,12 +70,12 @@ func (e Explorer) GetListOfParts() (nums []int, err error) {
 	}
 
 	if dir, err = os.Open(bcp); err != nil {
-		return nums, errors.New("can`t open blockchain directory: " + err.Error())
+		return nums, errors.New("Can`t open blockchain directory: " + err.Error())
 	}
 
 	parts, err := dir.Readdirnames(-1)
 	if err != nil {
-		return nums, errors.New("can`t Read blockchain directory: " + err.Error())
+		return nums, errors.New("Can`t Read blockchain directory: " + err.Error())
 	}
 
 	for i := len(parts) - 1; i >= 0; i-- {
@@ -125,6 +127,9 @@ func (e Explorer) GetLastBlock() (lastBlock Block, err error) {
 
 func (e Explorer) GetBlockByID(id int) (block Block, err error) {
 	var file *os.File
+	mod := int(math.Mod(float64(id), float64(e.Partition)))
+	e.Part = mod + 1
+	lineNum := id - (e.Partition * mod)
 	if _, err := os.Stat(FullPath(e.Path, e.Name, e.Part)); errors.Is(err, os.ErrNotExist) {
 		return Block{}, errors.New("BlockChain is NOT Exist! A file is required: " + FullPath(e.Path, e.Name, e.Part))
 	}
@@ -136,7 +141,7 @@ func (e Explorer) GetBlockByID(id int) (block Block, err error) {
 
 	defer file.Close()
 
-	line, _, err := GetLineByNum(file, id)
+	line, _, err := GetLineByNum(file, lineNum)
 	if err != nil && err != io.EOF {
 		return Block{}, err
 	} else if err == io.EOF {
@@ -154,15 +159,16 @@ func (e Explorer) GetBlockByID(id int) (block Block, err error) {
 func (e Explorer) AddBlockChainPart(time_now_utc time.Time) (num int, err error) {
 	lastblock, err := e.GetLastBlock()
 	if err != nil {
-		return 0, err
+		return e.Part, err
 	}
 
 	var file *os.File
 	parts, err := e.GetListOfParts()
 	if err != nil {
-		return 0, err
+		return e.Part, err
 	}
-	e.Part = parts[len(parts)-1] + 1
+	e.Part = parts[len(parts)-1]
+
 	if _, err := os.Stat(FullPath(e.Path, e.Name, e.Part)); errors.Is(err, os.ErrNotExist) {
 		file, err = os.Create(FullPath(e.Path, e.Name, e.Part))
 		if err != nil {
@@ -179,6 +185,7 @@ func (e Explorer) AddBlockChainPart(time_now_utc time.Time) (num int, err error)
 	if err != nil {
 		return e.Part, err
 	}
+	b.ID -= 1
 
 	file.Write(Translate.BlockToLine(Translate{}, b))
 
@@ -187,21 +194,34 @@ func (e Explorer) AddBlockChainPart(time_now_utc time.Time) (num int, err error)
 
 func (e Explorer) AddBlock(data []byte, time_utc time.Time) (id int, err error) {
 	var file *os.File
-	if _, err := os.Stat(FullPath(e.Path, e.Name, e.Part)); errors.Is(err, os.ErrNotExist) {
-		return 0, errors.New("BlockChain is NOT Exist! A file is required: " + e.Path)
+	if _, err := os.Stat(BlockChainPath(e.Path, e.Name)); errors.Is(err, os.ErrNotExist) {
+		return 0, errors.New("Add Block: BlockChain is NOT Exist! A file is required: " + BlockChainPath(e.Path, e.Name))
 	}
-
-	file, err = os.OpenFile(FullPath(e.Path, e.Name, e.Part), os.O_APPEND|os.O_WRONLY, os.ModeAppend)
-	if err != nil {
-		return 0, err
-	}
-
-	defer file.Close()
 
 	lastBlock, err := e.GetLastBlock()
 	if err != nil {
 		return lastBlock.ID + 1, errors.New("Error occurred when determining the last Block in the file: " + err.Error())
 	}
+
+	if lastBlock.ID%e.Partition == 0{
+		num, err:= e.AddBlockChainPart(time_utc)
+		if err!=nil{
+			return num, err
+		}
+	}
+
+	parts, err := e.GetListOfParts()
+	if err != nil {
+		return e.Part, err
+	}
+	e.Part = parts[len(parts)-1]
+
+	file, err = os.OpenFile(FullPath(e.Path, e.Name, e.Part), os.O_APPEND|os.O_WRONLY, os.ModeAppend)
+	if err != nil {
+		return 0, errors.New("Can`t open file for adding a block: "+ err.Error())
+	}
+
+	defer file.Close()
 
 	nBlock := Block{}
 	nBlock.NewBlock(data, lastBlock, time_utc)
