@@ -12,7 +12,7 @@ type Translate struct{}
 
 func (Translate) BlockToLine(block Block) (line []byte) {
 	line = []byte{}
-	lineSep := []byte("\\n")
+	lineSep := []byte("/*sep*/")
 
 	line = append(line, []byte(fmt.Sprint(block.ID))...)    // Block`s ID
 	line = append(line, lineSep...)                         // Splitter
@@ -28,11 +28,11 @@ func (Translate) BlockToLine(block Block) (line []byte) {
 }
 
 func (Translate) LineToBlock(line []byte) (block Block, err error) {
-	lineSep := []byte("\\n")
+	lineSep := []byte("/*sep*/")
 	time_form := "2006-01-02 15:04:05 Z0700 MST"
 
 	content := bytes.Split(line, lineSep)
-	//log.Printf("%x\n", content)
+	//log.Printf("%q\n", content)
 	//id
 	block.ID, err = strconv.Atoi(string(content[0]))
 	if err != nil {

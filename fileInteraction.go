@@ -1,11 +1,11 @@
 package way
 
 import (
-	"os"
-	"errors"
 	"bufio"
 	"bytes"
+	"errors"
 	"io"
+	"os"
 )
 
 func lineCounter(fullpath string) (int, error) {
@@ -47,5 +47,4 @@ func GetLineByNum(r io.Reader, lineNum int) (line []byte, lastLine int, err erro
 	} else {
 		return line, lastLine, nil
 	}
-
 }

@@ -106,11 +106,12 @@ func (e Explorer) GetBlockByID(id int) (block Block, err error) {
 
 	block, err = Translate.LineToBlock(Translate{}, line) //lineToBlock(line)
 	if err != nil {
-		return block, errors.New("Error: GetBlockByID: " + err.Error())
+		return block, errors.New("Error: Can`t translate file line to block:" + err.Error())
 	}
 
 	return block, nil
 }
+
 
 func (e Explorer) AddBlock(data []byte, time_utc time.Time) (id int, err error) {
 	var file *os.File
