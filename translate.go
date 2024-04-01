@@ -8,26 +8,27 @@ import (
 	"time"
 )
 
-type Translate struct {}
+type Translate struct{}
 
 func (Translate) BlockToLine(block Block) (line []byte) {
 	line = []byte{}
+	lineSep := []byte("\\n//")
 
 	line = append(line, []byte(fmt.Sprint(block.ID))...)    // Block`s ID
-	line = append(line, []byte("*/n*")...)                    // Splitter
+	line = append(line, lineSep...)                         // Splitter
 	line = append(line, []byte(block.Time_UTC.String())...) // The time of the creation of the blockchain.
-	line = append(line, []byte("*/n*")...)                    // Splitter
+	line = append(line, lineSep...)                         // Splitter
 	line = append(line, block.PrevHash...)                  // Hash of Previous Block.
-	line = append(line, []byte("*/n*")...)                    // Splitter
+	line = append(line, lineSep...)                         // Splitter
 	line = append(line, block.Hash...)                      // Hash of Block
-	line = append(line, []byte("*/n*")...)                    // Splitter
+	line = append(line, lineSep...)                         // Splitter
 	line = append(line, block.Data...)                      // Data of Block
 
 	return line
 }
 
 func (Translate) LineToBlock(line []byte) (block Block, err error) {
-	lineSep := []byte("*/n*")
+	lineSep := []byte("\\n//")
 	time_form := "2006-01-02 15:04:05 Z0700 MST"
 
 	content := bytes.Split(line, lineSep)
@@ -56,7 +57,7 @@ func (Translate) FileToChain(exp *Explorer) (err error) {
 	if err != nil {
 		return errors.New("Error occurred when translating the file to chain: " + err.Error())
 	}
-	
+
 	for i := 0; i <= lBlock.ID; i++ {
 		curblock, err := exp.GetBlockByID(i)
 		if err != nil {
@@ -73,7 +74,7 @@ func (Translate) ChainToFile(exp *Explorer) (err error) {
 	exp.CreateBlockChain(string(genesis.Data), genesis.Time_UTC)
 
 	lBlock := exp.Chain.GetLastBlock()
-	
+
 	for i := 1; i <= lBlock.ID; i++ {
 		curblock := exp.Chain.GetBlockByID(i)
 		_, err := exp.AddBlock(curblock.Data, curblock.Time_UTC)
