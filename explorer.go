@@ -4,25 +4,30 @@ import (
 	"errors"
 	"io"
 	"os"
+	"sort"
+	"strconv"
+	"strings"
 	"time"
 )
 
 type Explorer struct {
 	Path  string
 	Name  string
+	Part  int
 	Chain Chain
 }
 
 func (e Explorer) CreateBlockChain(genesis string, time_now_utc time.Time) error {
 	var file *os.File
-	if _, err := os.Stat(FullPath(e.Path, e.Name)); errors.Is(err, os.ErrNotExist) {
-		err = os.MkdirAll(e.Path, 0764)
+	e.Part = 0
+	if _, err := os.Stat(FullPath(e.Path, e.Name, e.Part)); errors.Is(err, os.ErrNotExist) {
+		err = os.MkdirAll(BlockChainPath(e.Path, e.Name), 0764)
 		if err != nil {
 			return errors.New("Can`t create a workspace! Can`t create a path: " + e.Path + "\n" + err.Error())
 		}
-		file, err = os.Create(FullPath(e.Path, e.Name))
+		file, err = os.Create(FullPath(e.Path, e.Name, e.Part))
 		if err != nil {
-			return errors.New("Can`t create blockchain! Can`t create a file: " + FullPath(e.Path, e.Name))
+			return errors.New("Can`t create blockchain! Can`t create a file: " + FullPath(e.Path, e.Name, e.Part))
 		}
 	} else if os.IsExist(err) {
 		return errors.New("BlockChain is Exist! File: " + e.Path)
@@ -42,10 +47,10 @@ func (e Explorer) CreateBlockChain(genesis string, time_now_utc time.Time) error
 }
 
 func (e Explorer) DeleteBlockChain() (found bool, err error) {
-	fp := FullPath(e.Path, e.Name)
+	fp := BlockChainPath(e.Path, e.Name)
 
 	if _, err := os.Stat(fp); err == nil {
-		err = os.Remove(fp)
+		err = os.RemoveAll(fp)
 		if err != nil {
 			return true, errors.New("Can`t remove blockchain: " + err.Error())
 		}
@@ -55,20 +60,54 @@ func (e Explorer) DeleteBlockChain() (found bool, err error) {
 	return true, nil
 }
 
+func (e Explorer) GetListOfParts() (nums []int, err error) {
+	var dir *os.File
+	bcp := BlockChainPath(e.Path, e.Name)
+	if _, err := os.Stat(bcp); errors.Is(err, os.ErrNotExist) {
+		return nums, errors.New("BlockChain is NOT Exist! A file is required: " + e.Path)
+	}
+
+	if dir, err = os.Open(bcp); err != nil {
+		return nums, errors.New("can`t open blockchain directory: " + err.Error())
+	}
+
+	parts, err := dir.Readdirnames(-1)
+	if err != nil {
+		return nums, errors.New("can`t Read blockchain directory: " + err.Error())
+	}
+
+	for i := len(parts) - 1; i >= 0; i-- {
+		num, err := strconv.Atoi(strings.ReplaceAll(parts[i], ".prt", ""))
+		if err != nil {
+			return nums, errors.New("Can`t translate part name to the int: " + err.Error())
+		}
+		nums = append(nums, num)
+	}
+	sort.Ints(nums)
+
+	return nums, nil
+}
+
 func (e Explorer) GetLastBlock() (lastBlock Block, err error) {
 	var file *os.File
-	if _, err := os.Stat(FullPath(e.Path, e.Name)); errors.Is(err, os.ErrNotExist) {
+	if _, err := os.Stat(BlockChainPath(e.Path, e.Name)); errors.Is(err, os.ErrNotExist) {
 		return Block{}, errors.New("BlockChain is NOT Exist! A file is required: " + e.Path)
 	}
 
-	file, err = os.Open(FullPath(e.Path, e.Name))
+	parts, err := e.GetListOfParts()
+	if err != nil {
+		return Block{}, err
+	}
+	e.Part = parts[len(parts)-1]
+
+	file, err = os.Open(FullPath(e.Path, e.Name, e.Part))
 	if err != nil {
 		return Block{}, err
 	}
 
 	defer file.Close()
 
-	lastNumOfLine, err := lineCounter(FullPath(e.Path, e.Name))
+	lastNumOfLine, err := lineCounter(FullPath(e.Path, e.Name, e.Part))
 	if err != nil {
 		return Block{}, errors.New("Error occurred when determining the last line of the file: " + err.Error())
 	}
@@ -86,11 +125,11 @@ func (e Explorer) GetLastBlock() (lastBlock Block, err error) {
 
 func (e Explorer) GetBlockByID(id int) (block Block, err error) {
 	var file *os.File
-	if _, err := os.Stat(FullPath(e.Path, e.Name)); errors.Is(err, os.ErrNotExist) {
-		return Block{}, errors.New("BlockChain is NOT Exist! A file is required: " + FullPath(e.Path, e.Name))
+	if _, err := os.Stat(FullPath(e.Path, e.Name, e.Part)); errors.Is(err, os.ErrNotExist) {
+		return Block{}, errors.New("BlockChain is NOT Exist! A file is required: " + FullPath(e.Path, e.Name, e.Part))
 	}
 
-	file, err = os.Open(FullPath(e.Path, e.Name))
+	file, err = os.Open(FullPath(e.Path, e.Name, e.Part))
 	if err != nil {
 		return Block{}, err
 	}
@@ -112,14 +151,47 @@ func (e Explorer) GetBlockByID(id int) (block Block, err error) {
 	return block, nil
 }
 
+func (e Explorer) AddBlockChainPart(time_now_utc time.Time) (num int, err error) {
+	lastblock, err := e.GetLastBlock()
+	if err != nil {
+		return 0, err
+	}
+
+	var file *os.File
+	parts, err := e.GetListOfParts()
+	if err != nil {
+		return 0, err
+	}
+	e.Part = parts[len(parts)-1] + 1
+	if _, err := os.Stat(FullPath(e.Path, e.Name, e.Part)); errors.Is(err, os.ErrNotExist) {
+		file, err = os.Create(FullPath(e.Path, e.Name, e.Part))
+		if err != nil {
+			return e.Part, errors.New("Can`t create blockchain Part! Can`t create a file: " + FullPath(e.Path, e.Name, e.Part))
+		}
+	} else if os.IsExist(err) {
+		return e.Part, errors.New("BlockChain Part is Exist! File: " + e.Path)
+	}
+
+	defer file.Close()
+
+	b := Block{}
+	b.NewBlock([]byte("New BlockChain Partition!"), lastblock, time_now_utc)
+	if err != nil {
+		return e.Part, err
+	}
+
+	file.Write(Translate.BlockToLine(Translate{}, b))
+
+	return e.Part, nil
+}
 
 func (e Explorer) AddBlock(data []byte, time_utc time.Time) (id int, err error) {
 	var file *os.File
-	if _, err := os.Stat(FullPath(e.Path, e.Name)); errors.Is(err, os.ErrNotExist) {
+	if _, err := os.Stat(FullPath(e.Path, e.Name, e.Part)); errors.Is(err, os.ErrNotExist) {
 		return 0, errors.New("BlockChain is NOT Exist! A file is required: " + e.Path)
 	}
 
-	file, err = os.OpenFile(FullPath(e.Path, e.Name), os.O_APPEND|os.O_WRONLY, os.ModeAppend)
+	file, err = os.OpenFile(FullPath(e.Path, e.Name, e.Part), os.O_APPEND|os.O_WRONLY, os.ModeAppend)
 	if err != nil {
 		return 0, err
 	}
