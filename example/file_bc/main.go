@@ -42,11 +42,12 @@ func main() {
 
 	startWrite := time.Now()
 	for i := 1; i <= inp; i++ {
-		if i%ExpCfg.Partition == 0 {
+		/*if i%ExpCfg.Partition == 0 {
 			_,_, err = ExpCfg.AddBlockInNewPart([]byte(somestr(lenght)), time.Now().UTC())
 		} else {
 			_, err = ExpCfg.AddBlock([]byte(somestr(lenght)), time.Now().UTC())
-		}
+		}*/
+		_, _, err := ExpCfg.AddBlock([]byte(somestr(lenght)), time.Now().UTC())
 		if err != nil {
 			log.Println(err)
 		}
@@ -63,7 +64,9 @@ func main() {
 	readed := []string{}
 	startRead := time.Now()
 	for i := 0; i <= lastBlock.ID; i++ {
-		curblock, err := ExpCfg.GetBlockByID( i)
+		//mod := i/ExpCfg.Partition
+		//ExpCfg.Part = mod
+		curblock, err := ExpCfg.GetBlockByID(i)
 		if err != nil {
 			log.Println(err)
 		}

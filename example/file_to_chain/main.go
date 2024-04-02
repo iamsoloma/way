@@ -36,7 +36,7 @@ func main() {
 	}
 
 	for i := 1; i <= inp; i++ {
-		_, err = ExpCfg.AddBlock([]byte(somestr(lenght)), time.Now().UTC())
+		_, _, err = ExpCfg.AddBlock([]byte(somestr(lenght)), time.Now().UTC())
 		if err != nil {
 			log.Println(err)
 		}
