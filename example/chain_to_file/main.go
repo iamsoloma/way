@@ -14,17 +14,20 @@ func main() {
 	inp := 0
 	genesis := ""
 	lenght := 0
+	partition := 1000
 	fmt.Print("Genesis block`s info data: ")
     fmt.Scanln(&genesis)
 	fmt.Print("The desired number of blocks(random data): ")
     fmt.Scanln(&inp)
+	fmt.Print("The desired number of blocks in one part: ")
+    fmt.Scanln(&partition)
 	fmt.Print("The desired lenght of random data: ")
     fmt.Scanln(&lenght)
 
 	path := "./blockchains"
 	name := "ex4"
 
-	ExpCfg := way.Explorer{Path: path, Name: name}
+	ExpCfg := way.Explorer{Path: path, Name: name, Partition: partition}
 
 	log.Println("Generating...")
 	err := ExpCfg.Chain.InitChain([]byte(genesis), time.Now().UTC())

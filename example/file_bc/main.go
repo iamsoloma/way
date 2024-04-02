@@ -13,25 +13,27 @@ func main() {
 	inp := 0
 	genesis := ""
 	lenght := 0
+	partition := 1000
 	fmt.Print("Genesis block`s info data: ")
     fmt.Scanln(&genesis)
 	fmt.Print("The desired number of blocks(random data): ")
     fmt.Scanln(&inp)
+	fmt.Print("The desired number of blocks in one part: ")
+    fmt.Scanln(&partition)
 	fmt.Print("The desired lenght of random data: ")
     fmt.Scanln(&lenght)
 
 	path := "./blockchains"
 	name := "ex1"
-	partition := 5
 
 	ExpCfg := way.Explorer{Path: path, Name: name, Partition: partition}
 
-	err := way.Explorer.CreateBlockChain(ExpCfg, genesis, time.Now().UTC())
+	err := ExpCfg.CreateBlockChain(genesis, time.Now().UTC())
 	if err != nil {
 		log.Println(err)
 	}
 
-	genBlock, err := way.Explorer.GetBlockByID(ExpCfg, 0)
+	genBlock, err := ExpCfg.GetBlockByID(0)
 	if err != nil {
 		log.Println(err)
 	} else {
@@ -40,15 +42,20 @@ func main() {
 
 	startWrite := time.Now()
 	for i := 1; i <= inp; i++ {
-		_, err = ExpCfg.AddBlock([]byte(somestr(lenght)), time.Now().UTC())
+		if i%ExpCfg.Partition == 0 {
+			_,_, err = ExpCfg.AddBlockInNewPart([]byte(somestr(lenght)), time.Now().UTC())
+		} else {
+			_, err = ExpCfg.AddBlock([]byte(somestr(lenght)), time.Now().UTC())
+		}
 		if err != nil {
 			log.Println(err)
 		}
 	}
 	endWrite := time.Since(startWrite)
+	log.Println("Writing is finished.")
 
 
-	lastBlock, err := way.Explorer.GetLastBlock(ExpCfg)
+	lastBlock, err := ExpCfg.GetLastBlock()
 	if err != nil {
 		log.Println(err)
 	}
@@ -56,7 +63,7 @@ func main() {
 	readed := []string{}
 	startRead := time.Now()
 	for i := 0; i <= lastBlock.ID; i++ {
-		curblock, err := way.Explorer.GetBlockByID(ExpCfg, i)
+		curblock, err := ExpCfg.GetBlockByID( i)
 		if err != nil {
 			log.Println(err)
 		}
