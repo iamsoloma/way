@@ -9,13 +9,23 @@ import (
 )
 
 func main() {
+	inp := 0
+	genesis := ""
+	lenght := 0
+	fmt.Print("Genesis block`s info data: ")
+    fmt.Scanln(&genesis)
+	fmt.Print("The desired number of blocks(random data): ")
+    fmt.Scanln(&inp)
+	fmt.Print("The desired lenght of random data: ")
+    fmt.Scanln(&lenght)
+	
 	mem_chain := way.Explorer{}.Chain
-	_ = mem_chain.InitChain([]byte("Hi!"), time.Now())
+	_ = mem_chain.InitChain([]byte(genesis), time.Now())
 
 	//fmt.Println(mem_chain)
 
-	for i := 0; i <= 99; i++ {
-		_ = mem_chain.NewBlockInChain([]byte(somestr(100)), time.Now().UTC())
+	for i := 0; i <= inp; i++ {
+		_ = mem_chain.NewBlockInChain([]byte(somestr(lenght)), time.Now().UTC())
 	}
 
 	fmt.Println(mem_chain.GetLastBlock().ID)
