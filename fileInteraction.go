@@ -8,8 +8,8 @@ import (
 	"os"
 )
 
-func lineCounter(fullpath string) (int, error) {
-	buf := make([]byte, 1*1024) //32 Kbyte
+func LineCounter(fullpath string) (int, error) {
+	buf := make([]byte, 32*1024) //32 Kbyte
 	count := 0
 	lineSep := []byte{'\n'}
 

@@ -108,7 +108,7 @@ func (e Explorer) GetLastBlock() (lastBlock Block, err error) {
 
 	defer file.Close()
 
-	lastNumOfLine, err := lineCounter(FullPath(e.Path, e.Name, e.Part))
+	lastNumOfLine, err := LineCounter(FullPath(e.Path, e.Name, e.Part))
 	if err != nil {
 		return Block{}, errors.New("Error occurred when determining the last line of the file: " + err.Error())
 	}
