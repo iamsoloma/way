@@ -101,17 +101,25 @@ func (e Explorer) GetLastBlock() (lastBlock Block, err error) {
 	}
 	e.Part = parts[len(parts)-1]
 
-	file, err = os.Open(FullPath(e.Path, e.Name, e.Part))
+	file, err = os.OpenFile(FullPath(e.Path, e.Name, e.Part), os.O_RDONLY, 0600)
 	if err != nil {
 		return Block{}, err
 	}
 
 	defer file.Close()
 
-	lastNumOfLine, err := LineCounter(FullPath(e.Path, e.Name, e.Part))
+	lastNumOfLine, err := LineCounter(file/*FullPath(e.Path, e.Name, e.Part)*/)
 	if err != nil {
 		return Block{}, errors.New("Error occurred when determining the last line of the file: " + err.Error())
 	}
+
+	file, err = os.OpenFile(FullPath(e.Path, e.Name, e.Part), os.O_RDONLY, 0600)
+	if err != nil {
+		return Block{}, err
+	}
+
+	defer file.Close()
+
 	line, _, err := GetLineByNum(file, lastNumOfLine)
 	if err != nil {
 		return Block{}, errors.New("Error occurred when getting the last line of the file: " + err.Error())

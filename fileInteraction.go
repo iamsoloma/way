@@ -3,25 +3,25 @@ package way
 import (
 	"bufio"
 	"bytes"
-	"errors"
+	//"errors"
 	"io"
-	"os"
+	//"os"
 )
 
-func LineCounter(fullpath string) (int, error) {
+func LineCounter(r io.Reader/*fullpath string*/) (int, error) {
 	buf := make([]byte, 32*1024) //32 Kbyte
 	count := 0
 	lineSep := []byte{'\n'}
 
-	file, err := os.OpenFile(fullpath, os.O_RDONLY, 0600)
+	/*file, err := os.OpenFile(fullpath, os.O_RDONLY, 0600)
 	if err != nil {
 		return count, errors.New("Error occurred when determining the last line of the file: " + err.Error())
 	}
 
-	defer file.Close()
+	defer file.Close()*/
 
 	for {
-		c, err := file.Read(buf)
+		c, err := r.Read(buf)//file.Read(buf)
 		count += bytes.Count(buf[:c], lineSep)
 
 		switch {
