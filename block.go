@@ -7,11 +7,11 @@ import (
 )
 
 type Block struct {
-	ID int
-	Time_UTC time.Time
-	PrevHash []byte
-	Hash []byte
-	Data []byte
+	ID       int       `json:"id"`
+	Time_UTC time.Time `json:"time_utc"`
+	PrevHash []byte    `json:"prev_hash"`
+	Hash     []byte    `json:"hash"`
+	Data     []byte    `json:"data"`
 }
 
 func (b *Block) InitBlock (genesis []byte, time_utc time.Time) (error) {
