@@ -5,7 +5,7 @@ import (
 	"math/rand"
 	"time"
 
-	"github.com/TinajXD/way"
+	"github.com/iamsoloma/way"
 )
 
 func main() {
@@ -13,12 +13,12 @@ func main() {
 	genesis := ""
 	lenght := 0
 	fmt.Print("Genesis block`s info data: ")
-    fmt.Scanln(&genesis)
+	fmt.Scanln(&genesis)
 	fmt.Print("The desired number of blocks(random data): ")
-    fmt.Scanln(&inp)
+	fmt.Scanln(&inp)
 	fmt.Print("The desired lenght of random data: ")
-    fmt.Scanln(&lenght)
-	
+	fmt.Scanln(&lenght)
+
 	mem_chain := way.Explorer{}.Chain
 	_ = mem_chain.InitChain([]byte(genesis), time.Now())
 
@@ -36,7 +36,8 @@ func main() {
 			curBlock.ID, curBlock.Time_UTC.String(), curBlock.PrevHash, curBlock.Hash, string(curBlock.Data))
 	}
 }
-//random
+
+// random
 func somestr(lenght int) string {
 	letters := []byte("abcdefghijklmnopqrstvwxyzABCDEFGHIGKLMNOPQRSTVWXYZ1234567890!@#$%^&*()_-+=")
 	out := []byte{}

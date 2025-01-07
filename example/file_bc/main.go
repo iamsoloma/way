@@ -6,7 +6,7 @@ import (
 	"math/rand"
 	"time"
 
-	"github.com/TinajXD/way"
+	"github.com/iamsoloma/way"
 )
 
 func main() {
@@ -15,13 +15,13 @@ func main() {
 	lenght := 0
 	partition := 1000
 	fmt.Print("Genesis block`s info data: ")
-    fmt.Scanln(&genesis)
+	fmt.Scanln(&genesis)
 	fmt.Print("The desired number of blocks(random data): ")
-    fmt.Scanln(&inp)
+	fmt.Scanln(&inp)
 	fmt.Print("The desired number of blocks in one part: ")
-    fmt.Scanln(&partition)
+	fmt.Scanln(&partition)
 	fmt.Print("The desired lenght of random data: ")
-    fmt.Scanln(&lenght)
+	fmt.Scanln(&lenght)
 
 	path := "./blockchains"
 	name := "ex1"
@@ -50,7 +50,6 @@ func main() {
 	endWrite := time.Since(startWrite)
 	log.Println("Writing is finished.")
 
-
 	lastBlock, err := ExpCfg.GetLastBlock()
 	if err != nil {
 		log.Println(err)
@@ -74,14 +73,13 @@ func main() {
 	}
 	fmt.Println("-------------------------------------------------------------")
 
-
 	log.Println("Last ID in blockchain is " + fmt.Sprint(lastBlock.ID) + ".")
-	log.Println("Recording time per block: ", endWrite / time.Duration(inp))
-	log.Println("Reading time per block: ", endRead / time.Duration(inp))
+	log.Println("Recording time per block: ", endWrite/time.Duration(inp))
+	log.Println("Reading time per block: ", endRead/time.Duration(inp))
 
 	var del bool
 	fmt.Print("Enter true or false if you want or do not want to delete the blockchain: ")
-    fmt.Scanln(&del)
+	fmt.Scanln(&del)
 
 	if del {
 		found, err := ExpCfg.DeleteBlockChain()
@@ -90,12 +88,12 @@ func main() {
 		} else {
 			log.Printf("Blockchain is deleted: %t.\nError: %s.", found, err.Error())
 		}
-		
+
 	}
 
 }
 
-//random
+// random
 func somestr(lenght int) string {
 	letters := []byte("abcdefghijklmnopqrstvwxyzABCDEFGHIGKLMNOPQRSTVWXYZ1234567890!@#$%^&*()_-+=")
 	out := []byte{}
